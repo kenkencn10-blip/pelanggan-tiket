@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hutan Tiket — Pembelian Tiket Online</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+/* THEME VARIABLES */
+:root {
+  --forest-dark: #0d1310;
+  --forest-mid: #1a2420;
+  --forest-light: #2a3a34;
+  --forest-accent: #4a5d54;
+  --off-white: #f4f4f4;
+  --moss: #7a9b85;
+  --moss-glow: rgba(122,155,133,0.6);
+  --shadow-color: rgba(0,0,0,0.4);
+  
+  --text-muted: rgba(244,244,244,0.5);
+  --text-faint: rgba(244,244,244,0.35);
+  --text-hover: rgba(244,244,244,0.6);
+  --text-dark-bg: rgba(244,244,244,0.7);
+  --border-faded: rgba(244,244,244,0.08);
+  --bg-overlay: rgba(13,19,16,0.7);
+  --bg-blur: rgba(13,19,16,0.85);
+  --bg-sidebar-footer: #1a2420;
+}
+
+[data-theme="light"] {
+  --forest-dark: #eef3ef;
+  --forest-mid: #ffffff;
+  --forest-light: #d9e1db;
+  --forest-accent: #c4d1ca;
+  --off-white: #1a2420;
+  --moss: #3d7a5c;
+  --moss-glow: rgba(61,122,92,0.3);
+  --shadow-color: rgba(61,122,92,0.15);
+  
+  --text-muted: rgba(26,36,32,0.6);
+  --text-faint: rgba(26,36,32,0.45);
+  --text-hover: rgba(26,36,32,0.8);
+  --text-dark-bg: rgba(26,36,32,0.8);
+  --border-faded: rgba(26,36,32,0.1);
+  --bg-overlay: rgba(255,255,255,0.8);
+  --bg-blur: rgba(255,255,255,0.9);
+  --bg-sidebar-footer: #f4f7f5;
+}
+
+* { font-family: 'Manrope', sans-serif; -webkit-font-smoothing: antialiased; }
+html, body { background: var(--forest-dark); color: var(--off-white); transition: background-color 0.3s ease, color 0.3s ease; }
+body { overflow-x: hidden; }
+
+::selection { background: var(--moss); color: var(--forest-dark); }
+
+/* THEME TOGGLE BUTTON */
+.theme-toggle-btn {
+  background: transparent;
+  border: 1px solid var(--forest-light);
+  color: var(--off-white);
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.theme-toggle-btn:hover {
+  border-color: var(--moss);
+  color: var(--moss);
+  background: var(--forest-dark);
+}
+.theme-toggle-btn i { font-size: 1rem; }
+
+/* TRANSITIONS */
+.sidebar, .main-content, .summary-card, .event-card, .product-card, .form-control-dark, .login-card, .mobile-header, .toast-custom {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* LOGIN SCREEN */
+#loginScreen {
+  position: fixed;
+  inset: 0;
+  background: var(--forest-dark);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+#loginScreen.hide { display: none; }
+#loginScreen::before {
+  content: '';
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, var(--moss-glow) 0%, rgba(13,19,16,0) 70%);
+  top: -300px;
+  right: -300px;
+  pointer-events: none;
+}
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--forest-mid);
+  border: 1px solid var(--forest-light);
+  border-radius: 16px;
+  padding: 2.5rem;
+  position: relative;
+  z-index: 2;
+}
+.login-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  text-align: center;
+  margin-bottom: 0.35rem;
+}
+.login-subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+  margin-bottom: 0;
+}
+.login-hint {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--forest-dark);
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1px dashed var(--forest-light);
+  margin-top: 1.5rem;
+}
+.btn-toggle-pass {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-hover);
+  cursor: pointer;
+  padding: 0.2rem;
+}
+.btn-toggle-pass:hover { color: var(--off-white); }
+
+.login-error-msg {
+  color: #ff7676;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  margin-bottom: 0;
+  text-align: center;
+  display: none;
+}
+
+.switch-text {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-hover);
+  margin-top: 1.5rem;
+}
+.switch-text a {
+  color: var(--moss);
+  text-decoration: none;
+  font-weight: 600;
+}
+.switch-text a:hover { text-decoration: underline; }
+
+/* SIDEBAR */
+.sidebar {
+  background: var(--forest-mid);
+  min-height: 100vh;
+  border-right: 1px solid var(--forest-light);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 1030;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--forest-light); border-radius: 2px; }
+
+.logo-wrap {
+  padding: 1.5rem 1.5rem;
+  border-bottom: 1px solid var(--forest-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo-text {
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.logo-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--moss);
+  box-shadow: 0 0 12px var(--moss-glow);
+  flex-shrink: 0;
+}
+.logo-year {
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+.nav-section { padding: 1rem 0.75rem; }
+.nav-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-faint);
+  padding: 0.75rem 1rem 0.5rem;
+  font-weight: 600;
+}
+.nav-link-custom {
+  color: var(--text-hover);
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  margin-bottom: 2px;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+}
+.nav-link-custom i { font-size: 1.05rem; }
+.nav-link-custom:hover {
+  color: var(--off-white);
+  background: rgba(122,155,133,0.06);
+}
+.nav-link-custom.active {
+  color: var(--off-white);
+  background: rgba(122,155,133,0.12);
+  border-left-color: var(--moss);
+}
+.nav-count {
+  margin-left: auto;
+  background: var(--forest-dark);
+  color: var(--moss);
+  font-size: 0.7rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--forest-light);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-sidebar-footer);
+}
+.avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--forest-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--off-white);
+}
+
+/* MAIN CONTENT */
+.main-content { padding: 2.5rem 2.75rem; min-height: 100vh; }
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.25rem;
+}
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+.page-section { display: none; animation: fadeUp 0.5s ease forwards; }
+.page-section.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* EVENT CARD */
+.event-card {
+  background: var(--forest-mid);
+  border: 1px solid var(--forest-light);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(.22,1,.36,1);
+  cursor: pointer;
+  height: 100%;
+}
+.event-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--moss);
+  box-shadow: 0 12px 40px var(--shadow-color);
+}
+.event-img-wrap {
+  position: relative;
+  aspect-ratio: 16/10;
+  overflow: hidden;
+}
+.event-img-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.event-card:hover .event-img-wrap img { transform: scale(1.06); }
+.event-img-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, var(--bg-overlay) 100%);
+  pointer-events: none;
+}
+.event-badge {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  background: var(--bg-blur);
+  backdrop-filter: blur(8px);
+  color: var(--off-white);
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  z-index: 2;
+  border: 1px solid rgba(122,155,133,0.3);
+}
+.event-date-overlay {
+  position: absolute;
+  bottom: 0.85rem;
+  left: 0.85rem;
+  z-index: 2;
+  font-size: 0.75rem;
+  color: var(--off-white);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.event-body { padding: 1.1rem 1.25rem 1.25rem; }
+.event-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.3rem;
+  line-height: 1.3;
+}
+.event-loc {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.event-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--forest-light);
+}
+.event-price {
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+.event-price-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 0.1rem;
+}
+
+/* BUTTONS */
+.btn-pilih {
+  background: var(--off-white);
+  color: var(--forest-dark);
+  border: none;
+  padding: 0.45rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.btn-pilih:hover {
+  background: var(--moss);
+  color: var(--off-white);
+  transform: translateY(-1px);
+}
+.btn-pilih.selected {
+  background: var(--moss);
+  color: var(--off-white);
+}
+.btn-pilih:disabled {
+  background: var(--forest-light);
+  color: var(--text-faint);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* TICKET ROW */
+.product-card {
+  background: var(--forest-mid);
+  border: 1px solid var(--forest-light);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+.product-card:hover { border-color: var(--forest-accent); }
+.product-card.selected { border-color: var(--moss); background: rgba(122,155,133,0.05); }
+
+.product-thumb {
+  width: 64px; height: 64px;
+  border-radius: 10px;
+  background: var(--forest-light);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.product-info { flex-grow: 1; min-width: 0; }
+.product-name {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.product-meta {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-bottom: 0.4rem;
+}
+.product-price-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+.product-price { font-weight: 700; }
+.product-stock {
+  color: var(--text-faint);
+  font-size: 0.78rem;
+}
+
+.qty-control {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--forest-dark);
+  border-radius: 8px;
+  padding: 0.25rem;
+  border: 1px solid var(--forest-light);
+}
+.qty-btn {
+  width: 28px; height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--off-white);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+.qty-btn:hover { background: var(--forest-light); }
+.qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.qty-value {
+  min-width: 26px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* SUMMARY CARD */
+.summary-card {
+  background: var(--forest-mid);
+  border: 1px solid var(--forest-light);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+.summary-card.sticky { position: sticky; top: 1.5rem; }
+
+.summary-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--forest-light);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.summary-title i { color: var(--moss); }
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.65rem 0;
+  font-size: 0.85rem;
+  gap: 1rem;
+}
+.summary-row + .summary-row { border-top: 1px dashed var(--border-faded); }
+.summary-item-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.15rem; }
+.summary-item-meta { color: var(--text-muted); font-size: 0.75rem; }
+.summary-item-price { font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
+
+.summary-subtotal {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--text-dark-bg);
+}
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--forest-light);
+  margin-top: 0.5rem;
+}
+.summary-total .label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+}
+.summary-total .value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.btn-proses {
+  width: 100%;
+  background: var(--off-white);
+  color: var(--forest-dark);
+  border: none;
+  padding: 0.95rem;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 1.25rem;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+.btn-proses:hover {
+  background: var(--moss);
+  color: var(--off-white);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--moss-glow);
+}
+.btn-proses:disabled {
+  background: var(--forest-light);
+  color: var(--text-faint);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* FORM */
+.form-label {
+  color: var(--text-dark-bg);
+  font-size: 0.8rem;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+}
+.form-control-dark {
+  background: var(--forest-dark) !important;
+  border: 1px solid var(--forest-light) !important;
+  color: var(--off-white) !important;
+  padding: 0.65rem 0.9rem !important;
+  font-size: 0.875rem !important;
+  border-radius: 8px !important;
+}
+.form-control-dark:focus {
+  border-color: var(--moss) !important;
+  box-shadow: 0 0 0 0.2rem var(--moss-glow) !important;
+  background: var(--forest-dark) !important;
+  color: var(--off-white) !important;
+}
+.form-control-dark::placeholder { color: var(--text-faint); }
+
+/* RIWAYAT ITEM */
+.riwayat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--forest-light);
+}
+.riwayat-item:last-child { border-bottom: none; }
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.status-success { background: rgba(122,155,133,0.18); color: var(--moss); }
+.status-pending { background: rgba(255, 193, 7, 0.18); color: #ffc107; }
+
+/* MOBILE */
+.mobile-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: var(--forest-mid);
+  border-bottom: 1px solid var(--forest-light);
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+.cart-badge-mobile { position: relative; }
+.cart-badge-mobile .count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--moss);
+  color: var(--off-white);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 8px;
+  min-width: 16px;
+  text-align: center;
+}
+
+#sidebarBackdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1025;
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 991.98px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .sidebar.show { transform: translateX(0); }
+  .main-content { padding: 1.5rem 1.25rem; }
+  .mobile-header { display: flex; }
+  .page-title { font-size: 1.5rem; }
+}
+
+@media (max-width: 575.98px) {
+  .product-card { flex-wrap: wrap; }
+  .product-card > div:last-child { width: 100%; justify-content: space-between; }
+}
+
+/* TOAST */
+.toast-custom {
+  background: var(--forest-mid) !important;
+  color: var(--off-white) !important;
+  border: 1px solid var(--moss) !important;
+  border-radius: 10px !important;
+}
+.toast-custom .toast-body { padding: 0.85rem 1.1rem; font-size: 0.85rem; font-weight: 500; }
+
+/* MISC */
+.filter-btn {
+  background: var(--forest-mid); 
+  color: var(--off-white); 
+  border: 1px solid var(--forest-light); 
+  padding: 0.5rem 0.9rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+.filter-btn:hover { border-color: var(--moss); color: var(--moss); }
+
+.empty-state {
+  color: var(--text-muted); 
+  font-size: 0.85rem;
+}
+.empty-state i { color: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="logo-text" style="font-size: 1.2rem;">
+        <span class="logo-dot"></span>HUTAN TIKET
+      </div>
+      <button class="theme-toggle-btn" onclick="toggleTheme()"><i class="bi bi-sun-fill"></i></button>
+    </div>
+
+    <!-- FORM LOGIN -->
+    <div id="loginView">
+      <h2 class="login-title">Selamat Datang</h2>
+      <p class="login-subtitle">Masuk untuk melanjutkan pemesanan tiket Anda</p>
+      
+      <form id="loginForm" class="mt-4">
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control form-control-dark" id="loginEmail" placeholder="email@contoh.com" required>
+        </div>
+        <div class="mb-3 position-relative">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control form-control-dark" id="loginPassword" placeholder="Masukkan Password" required style="padding-right: 40px !important;">
+          <button type="button" class="btn-toggle-pass" id="togglePassLogin"><i class="bi bi-eye"></i></button>
+        </div>
+        <p class="login-error-msg" id="loginError">Email atau password salah!</p>
+        <button type="submit" class="btn-proses" style="margin-top: 0;">Masuk</button>
+      </form>
+      
+      <p class="switch-text">Belum punya akun? <a href="#" id="goToRegister">Daftar di sini</a></p>
+      <div class="login-hint">
+        <span>Akun tersimpan di Spreadsheet Google Sheets</span>
+      </div>
+    </div>
+
+    <!-- FORM DAFTAR -->
+    <div id="registerView" style="display: none;">
+      <h2 class="login-title">Daftar Akun Baru</h2>
+      <p class="login-subtitle">Buat akun untuk mulai membeli tiket</p>
+      
+      <form id="registerForm" class="mt-4">
+        <div class="mb-3">
+          <label class="form-label">Nama Lengkap</label>
+          <input type="text" class="form-control form-control-dark" id="regName" placeholder="cth. Budi Santoso" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control form-control-dark" id="regEmail" placeholder="email@contoh.com" required>
+        </div>
+        <div class="mb-3 position-relative">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control form-control-dark" id="regPassword" placeholder="Min. 6 karakter" required style="padding-right: 40px !important;">
+          <button type="button" class="btn-toggle-pass" id="togglePassReg"><i class="bi bi-eye"></i></button>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Konfirmasi Password</label>
+          <input type="password" class="form-control form-control-dark" id="regPasswordConfirm" placeholder="Ulangi password" required>
+        </div>
+        <p class="login-error-msg" id="registerError">Pendaftaran gagal!</p>
+        <button type="submit" class="btn-proses" style="margin-top: 0;">Daftar Sekarang</button>
+      </form>
+      
+      <p class="switch-text">Sudah punya akun? <a href="#" id="goToLogin">Masuk di sini</a></p>
+    </div>
+
+  </div>
+</div>
+
+<!-- MOBILE HEADER -->
+<div class="mobile-header">
+  <button class="btn btn-sm p-0" id="menuToggle" style="color: var(--off-white);">
+    <i class="bi bi-list" style="font-size: 1.6rem;"></i>
+  </button>
+  <div class="logo-text">
+    <span class="logo-dot"></span>HUTAN TIKET
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <button class="theme-toggle-btn" onclick="toggleTheme()"><i class="bi bi-sun-fill"></i></button>
+    <div class="cart-badge-mobile">
+      <i class="bi bi-bag" style="font-size: 1.2rem; color: var(--off-white);"></i>
+      <span class="count" id="cartCountMobile" style="display:none;">0</span>
+    </div>
+  </div>
+</div>
+
+<div id="sidebarBackdrop"></div>
+
+<div class="container-fluid">
+  <div class="row">
+    <!-- SIDEBAR -->
+    <aside class="col-lg-2 col-md-3 sidebar p-0" id="sidebar">
+      <div class="logo-wrap">
+        <div class="logo-text">
+          <span class="logo-dot"></span>HUTAN TIKET
+          <span class="logo-year">· 2024</span>
+        </div>
+        <button class="theme-toggle-btn" onclick="toggleTheme()"><i class="bi bi-sun-fill"></i></button>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Menu Utama</div>
+        <a class="nav-link-custom active" data-page="event">
+          <i class="bi bi-calendar-event"></i> Event
+          <span class="nav-count" id="eventCount" style="display:none;">0</span>
+        </a>
+        <a class="nav-link-custom" data-page="tiket">
+          <i class="bi bi-ticket-perforated"></i> Tiket
+          <span class="nav-count" id="cartCount" style="display:none;">0</span>
+        </a>
+        <a class="nav-link-custom" data-page="pemesanan">
+          <i class="bi bi-bag-check"></i> Pemesanan
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Transaksi</div>
+        <a class="nav-link-custom" data-page="riwayat">
+          <i class="bi bi-clock-history"></i> Riwayat
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="avatar" id="userAvatar">AR</div>
+        <div style="line-height: 1.2; flex-grow: 1; overflow: hidden;">
+          <div style="font-size: 0.82rem; font-weight: 600;" id="userName">Ardian R.</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);" id="userEmail">ardian@hutan.id</div>
+        </div>
+        <button class="btn p-0" id="btnLogout" title="Keluar" style="color: var(--text-hover);">
+          <i class="bi bi-box-arrow-right" style="font-size: 1.1rem;"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="col-lg-10 col-md-9 main-content">
+      <!-- ============= EVENT ============= -->
+      <section class="page-section active" id="page-event">
+        <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
+          <div>
+            <h1 class="page-title">Event Mendatang</h1>
+            <p class="page-subtitle">Daftar event terkurasi yang tersedia</p>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm filter-btn"><i class="bi bi-funnel"></i> Filter</button>
+            <button class="btn btn-sm filter-btn"><i class="bi bi-sort-down"></i> Urutkan</button>
+          </div>
+        </div>
+
+        <div class="row g-3" id="eventGrid">
+          <div class="text-center py-5 w-100 empty-state">
+            <div class="spinner-border text-success" role="status"></div>
+            <p class="mt-3">Memuat data event...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============= TIKET ============= -->
+      <section class="page-section" id="page-tiket">
+        <div class="row g-4">
+          <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-end mb-4">
+              <div>
+                <h1 class="page-title">Pilih Tiket</h1>
+                <p class="page-subtitle">Tentukan jumlah tiket untuk setiap event</p>
+              </div>
+            </div>
+            <div class="d-flex flex-column gap-3" id="ticketList"></div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="summary-card sticky">
+              <h3 class="summary-title">
+                <i class="bi bi-receipt"></i> Ringkasan Pesanan Anda
+              </h3>
+              <div id="summaryItems">
+                <p class="text-center py-4 empty-state">
+                  Belum ada tiket dipilih.<br>Pilih tiket di sebelah kiri untuk mulai memesan.
+                </p>
+              </div>
+              <div id="summaryFooter" style="display:none;">
+                <div class="summary-subtotal">
+                  <span>Subtotal</span>
+                  <span id="subtotalValue">Rp 0</span>
+                </div>
+                <div class="summary-subtotal">
+                  <span>Biaya Admin</span>
+                  <span id="feeValue">Rp 5.000</span>
+                </div>
+                <div class="summary-total">
+                  <span class="label">Total</span>
+                  <span class="value" id="totalValue">Rp 0</span>
+                </div>
+                <button class="btn-proses" id="btnProses">Proses Pesanan</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============= PEMESANAN ============= -->
+      <section class="page-section" id="page-pemesanan">
+        <div class="row g-4">
+          <div class="col-lg-8">
+            <div class="mb-4">
+              <h1 class="page-title">Pemesanan Tiket</h1>
+              <p class="page-subtitle">Lengkapi data pemesan dan konfirmasi pembayaran</p>
+            </div>
+
+            <div class="summary-card mb-3">
+              <h3 class="summary-title"><i class="bi bi-person"></i> Data Pemesan</h3>
+              <form id="customerForm">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Nama Lengkap</label>
+                    <input type="text" class="form-control form-control-dark" id="custName" placeholder="cth. Ardian Rahman" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control form-control-dark" id="custEmail" placeholder="email@contoh.com" required>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div class="summary-card mb-3">
+              <h3 class="summary-title"><i class="bi bi-credit-card"></i> Metode Pembayaran</h3>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <label class="d-flex align-items-center gap-2 p-3 rounded" style="background: var(--forest-dark); border: 1px solid var(--forest-light); cursor: pointer;">
+                    <input type="radio" name="pay" checked style="accent-color: var(--moss);">
+                    <span style="font-size: 0.85rem; font-weight: 500;">Transfer Bank (BCA / Mandiri)</span>
+                  </label>
+                </div>
+                <div class="col-md-6">
+                  <label class="d-flex align-items-center gap-2 p-3 rounded" style="background: var(--forest-dark); border: 1px solid var(--forest-light); cursor: pointer;">
+                    <input type="radio" name="pay" style="accent-color: var(--moss);">
+                    <span style="font-size: 0.85rem; font-weight: 500;">E-Wallet (GoPay / OVO)</span>
+                  </label>
+                </div>
+                <div class="col-md-6">
+                  <label class="d-flex align-items-center gap-2 p-3 rounded" style="background: var(--forest-dark); border: 1px solid var(--forest-light); cursor: pointer;">
+                    <input type="radio" name="pay" style="accent-color: var(--moss);">
+                    <span style="font-size: 0.85rem; font-weight: 500;">Kartu Kredit</span>
+                  </label>
+                </div>
+                <div class="col-md-6">
+                  <label class="d-flex align-items-center gap-2 p-3 rounded" style="background: var(--forest-dark); border: 1px solid var(--forest-light); cursor: pointer;">
+                    <input type="radio" name="pay" style="accent-color: var(--moss);">
+                    <span style="font-size: 0.85rem; font-weight: 500;">QRIS</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="summary-card sticky">
+              <h3 class="summary-title"><i class="bi bi-receipt"></i> Ringkasan Pesanan Anda</h3>
+              <div id="checkoutItems">
+                <p class="text-center py-4 empty-state">
+                  Keranjang masih kosong.
+                </p>
+              </div>
+              <div id="checkoutFooter" style="display:none;">
+                <div class="summary-subtotal">
+                  <span>Subtotal</span>
+                  <span id="checkoutSubtotal">Rp 0</span>
+                </div>
+                <div class="summary-subtotal">
+                  <span>Biaya Admin</span>
+                  <span>Rp 5.000</span>
+                </div>
+                <div class="summary-total">
+                  <span class="label">Total</span>
+                  <span class="value" id="checkoutTotal">Rp 0</span>
+                </div>
+                <button class="btn-proses" id="btnBayar">Bayar Sekarang</button>
+                <p class="text-center mt-3" style="font-size: 0.72rem; color: var(--text-faint);">
+                  Dengan melanjutkan, Anda menyetujui syarat & ketentuan.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============= RIWAYAT ============= -->
+      <section class="page-section" id="page-riwayat">
+        <div class="mb-4">
+          <h1 class="page-title">Riwayat Pemesanan</h1>
+          <p class="page-subtitle">Daftar transaksi tiket yang pernah Anda buat (Data Sinkron Spreadsheet)</p>
+        </div>
+        <div class="summary-card" id="riwayatContainer">
+          <div class="text-center py-5 empty-state" id="riwayatEmpty">
+            <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+            <p class="mt-3">Belum ada riwayat pemesanan</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 99999">
+  <div id="liveToast" class="toast toast-custom" role="alert">
+    <div class="toast-body" id="toastBody">Notifikasi</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ================= KONFIGURASI API =================
+// Ganti URL dibawah ini dengan URL Google Apps Script Anda
+const API_URL = 'https://script.google.com/macros/s/AKfycbzDV8y0z9trDqkEWR_KWmDZMm1BgdvUsxUDhLeZ_c0OrbTIXfDHEVkzUZ9dRqpOo_ES/exec'; 
+
+// ================= THEME TOGGLE LOGIC =================
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const iconClass = theme === 'dark' ? 'bi-sun-fill' : 'bi-moon-stars-fill';
+  document.querySelectorAll('.theme-toggle-btn i').forEach(icon => {
+    icon.className = 'bi ' + iconClass;
+  });
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  applyTheme(newTheme);
+  localStorage.setItem('theme', newTheme);
+}
+
+const savedTheme = localStorage.getItem('theme') || 'dark';
+applyTheme(savedTheme);
+
+// ================= DATA STATE =================
+let events = [];
+let tickets = []; 
+let cart = {};
+let riwayat = [];
+let currentUser = null; 
+
+const formatRupiah = n => 'Rp ' + (Number(n) || 0).toLocaleString('id-ID');
+
+// ================= HASH PASSWORD (UNTUK MATCH DENGAN GAS) =================
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
+// ================= API CALLS =================
+// Disesuaikan dengan Header Google Sheets: ID_EVENT, NAMA_EVENT, TANGGAL, LOKASI, STATUS, URL_GAMBAR
+async function fetchEvents() {
+  try {
+    const res = await fetch(`${API_URL}?action=read&table=event&t=${Date.now()}`);
+    const json = await res.json();
+    
+    if (json.success && Array.isArray(json.data)) {
+      events = json.data.map((e, index) => {
+        const eventId = String(e.ID_EVENT || `EV${index+1}`); 
+        
+        // Handle TANGGAL
+        let formattedDate = '-';
+        if (e.TANGGAL) {
+          const parsedDate = new Date(e.TANGGAL);
+          if (!isNaN(parsedDate)) {
+            formattedDate = parsedDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+          } else {
+            formattedDate = String(e.TANGGAL);
+          }
+        }
+
+        // Handle URL_GAMBAR & Otomatis konversi link Google Drive
+        let imgUrl = `https://picsum.photos/seed/${eventId}/600/400`; // Fallback kalau kosong
+        if (e.URL_GAMBAR) {
+          let rawUrl = String(e.URL_GAMBAR);
+          // Jika link adalah link Google Drive standar, ubah jadi direct link
+          if (rawUrl.includes('drive.google.com/file/d/')) {
+            const match = rawUrl.match(/\/d\/(.*?)\//);
+            if (match && match[1]) {
+              rawUrl = `https://drive.google.com/uc?id=${match[1]}`;
+            }
+          }
+          
+          if (rawUrl.startsWith('http')) {
+            imgUrl = rawUrl;
+          } else {
+            imgUrl = `https://picsum.photos/seed/${rawUrl}/600/400`;
+          }
+        }
+
+        return {
+          id: eventId,
+          name: e.NAMA_EVENT || 'Tanpa Nama',
+          cat: e.STATUS || 'Event', // Memetakan STATUS sebagai Kategori Badge
+          date: formattedDate,
+          loc: e.LOKASI || '-',
+          price: parseInt(e.HARGA || 0), // Tidak ada di header, default 0
+          stock: parseInt(e.KUOTA || 0), // Tidak ada di header, default 0
+          img: imgUrl
+        };
+      });
+      renderEvents();
+      return;
+    }
+  } catch (err) {
+    console.warn("Gagal memuat event dari API:", err.message);
+  }
+  events = [];
+  renderEvents();
+}
+
+// Asumsi tabel tiket memiliki kolom yang serupa, disesuaikan agar URL_GAMBAR juga terbaca
+async function fetchTickets() {
+  try {
+    const res = await fetch(`${API_URL}?action=read&table=tiket&t=${Date.now()}`);
+    const json = await res.json();
+    
+    if (json.success && Array.isArray(json.data)) {
+      tickets = json.data.map((e, index) => {
+        const ticketId = String(e.ID_TIKET || e.ID_EVENT || `T${index+1}`); 
+        
+        let formattedDate = '-';
+        if (e.TANGGAL) {
+          const parsedDate = new Date(e.TANGGAL);
+          if (!isNaN(parsedDate)) {
+            formattedDate = parsedDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+          } else {
+            formattedDate = String(e.TANGGAL);
+          }
+        }
+
+        // --- LOGIKA RELASI GAMBAR DARI EVENT ---
+        let imgUrl = `https://picsum.photos/seed/${ticketId}/600/400`; // Fallback default
+        
+        // Cek apakah tiket punya URL_GAMBAR sendiri di sheet
+        const directImg = e.URL_GAMBAR || e.GAMBAR;
+        if (directImg) {
+          let rawUrl = String(directImg);
+          // Jika link adalah link Google Drive standar, ubah jadi direct link
+          if (rawUrl.includes('drive.google.com/file/d/')) {
+            const match = rawUrl.match(/\/d\/(.*?)\//);
+            if (match && match[1]) {
+              rawUrl = `https://drive.google.com/uc?id=${match[1]}`;
+            }
+          }
+          
+          if (rawUrl.startsWith('http')) {
+            imgUrl = rawUrl;
+          } else {
+            imgUrl = `https://picsum.photos/seed/${rawUrl}/600/400`;
+          }
+        } else {
+          // Jika tiket tidak punya gambar, ambil gambar dari Event yang ID-nya sama (Relasi)
+          const relatedEventId = String(e.ID_EVENT || e.ID_TIKET || '');
+          const relatedEvent = events.find(ev => ev.id === relatedEventId);
+          if (relatedEvent && relatedEvent.img) {
+            imgUrl = relatedEvent.img;
+          }
+        }
+
+        return {
+          id: ticketId,
+          name: e.NAMA_TIKET || e.NAMA_EVENT || 'Tanpa Nama',
+          cat: e.KATEGORI || e.STATUS || 'Umum',
+          date: formattedDate,
+          loc: e.LOKASI || '-',
+          price: parseInt(e.HARGA || 0),
+          stock: parseInt(e.KUOTA || 0),
+          status: String(e.STATUS || 'active').toLowerCase().trim(), 
+          img: imgUrl
+        };
+      });
+      renderTickets();
+      renderEvents(); 
+      return;
+    }
+  } catch (err) {
+    console.warn("Gagal memuat tiket dari API:", err.message);
+  }
+  tickets = [];
+  renderTickets();
+  renderEvents();
+}
+
+async function fetchRiwayat(namaUser) {
+  if (!namaUser) return;
+  try {
+    const res = await fetch(`${API_URL}?action=read&table=pesanan&t=${Date.now()}`);
+    const json = await res.json();
+    
+    if (json.success && Array.isArray(json.data)) {
+      riwayat = json.data.filter(p => {
+        const sheetName = String(p.NAMA_PEMESAN || '').trim().toUpperCase();
+        const userName = String(namaUser || '').trim().toUpperCase();
+        return sheetName === userName;
+      });
+      renderRiwayat();
+      return;
+    }
+  } catch (err) {
+    console.warn("Gagal fetch riwayat:", err.message);
+  }
+  renderRiwayat();
+}
+
+async function createPesanan(pesananData) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'create',
+        table: 'pesanan',
+        data: pesananData
+      })
+    });
+    const json = await res.json();
+    return json.success;
+  } catch (err) {
+    console.warn("Gagal kirim ke API:", err.message);
+    return false;
+  }
+}
+
+async function updateTiketStock(id, newStock) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'update',
+        table: 'tiket',
+        id: id,
+        data: { KUOTA: newStock }
+      })
+    });
+    const json = await res.json();
+    return json.success;
+  } catch (err) {
+    console.warn("Gagal update stok:", err.message);
+    return false;
+  }
+}
+
+async function attemptLogin(email, pass) {
+  try {
+    const hashedPass = await sha256(pass);
+    const res = await fetch(`${API_URL}?action=read&table=akun&t=${Date.now()}`);
+    const json = await res.json();
+    
+    if (json.success && Array.isArray(json.data)) {
+      const user = json.data.find(u => String(u.EMAIL).trim() === String(email).trim() && String(u.PASSWORD).trim() === hashedPass);
+      if (user) {
+        return { success: true, name: user.NICKNAME, email: user.EMAIL };
+      }
+      return { success: false };
+    }
+  } catch (err) {
+    console.warn("Login API tidak tersedia:", err.message);
+  }
+  return { success: false };
+}
+
+async function registerUser(name, email, pass) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'create',
+        table: 'akun',
+        data: { NICKNAME: name, EMAIL: email, PASSWORD: pass }
+      })
+    });
+    const json = await res.json();
+    return json.success;
+  } catch (err) {
+    console.warn("Register API tidak tersedia:", err.message);
+    return false;
+  }
+}
+
+// ================= LOGIN & REGISTER LOGIC =================
+document.getElementById('goToRegister').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('registerView').style.display = 'block';
+});
+
+document.getElementById('goToLogin').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('registerView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'block';
+});
+
+function setupTogglePass(toggleBtnId, inputId) {
+  document.getElementById(toggleBtnId).addEventListener('click', function() {
+    const input = document.getElementById(inputId);
+    const icon = this.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('bi-eye');
+      icon.classList.add('bi-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('bi-eye-slash');
+      icon.classList.add('bi-eye');
+    }
+  });
+}
+setupTogglePass('togglePassLogin', 'loginPassword');
+setupTogglePass('togglePassReg', 'regPassword');
+
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const name = document.getElementById('regName').value;
+  const email = document.getElementById('regEmail').value;
+  const pass = document.getElementById('regPassword').value;
+  const passConfirm = document.getElementById('regPasswordConfirm').value;
+  const errorEl = document.getElementById('registerError');
+
+  if (pass.length < 6) {
+    errorEl.textContent = "Password minimal 6 karakter!";
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (pass !== passConfirm) {
+    errorEl.textContent = "Konfirmasi password tidak cocok!";
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const regSuccess = await registerUser(name, email, pass);
+  
+  if (regSuccess) {
+    showToast('Pendaftaran berhasil! Silakan masuk.');
+    document.getElementById('registerForm').reset();
+    errorEl.style.display = 'none';
+    document.getElementById('registerView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'block';
+    document.getElementById('loginEmail').value = email;
+    document.getElementById('loginPassword').focus();
+  } else {
+    errorEl.textContent = "Gagal mendaftar via API. Coba lagi.";
+    errorEl.style.display = 'block';
+  }
+});
+
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPassword').value;
+  
+  const loginResult = await attemptLogin(email, pass);
+  
+  if (loginResult.success) {
+    document.getElementById('loginScreen').classList.add('hide');
+    showToast(`Login berhasil! Selamat datang, ${loginResult.name.split(' ')[0]}.`);
+    
+    currentUser = { name: loginResult.name, email: loginResult.email };
+    
+    document.getElementById('userName').textContent = currentUser.name;
+    document.getElementById('userEmail').textContent = currentUser.email;
+    document.getElementById('userAvatar').textContent = currentUser.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+    
+    document.getElementById('custName').value = currentUser.name;
+    document.getElementById('custEmail').value = currentUser.email;
+    
+    document.getElementById('loginError').style.display = 'none';
+    
+    fetchRiwayat(currentUser.name);
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+});
+
+document.getElementById('btnLogout').addEventListener('click', function() {
+  cart = {};
+  currentUser = null;
+  riwayat = [];
+  updateCartCount();
+  renderTickets();
+  updateSummary();
+  renderRiwayat();
+  switchPage('event');
+  document.getElementById('loginScreen').classList.remove('hide');
+  document.getElementById('loginForm').reset();
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('customerForm').reset();
+  showToast('Anda telah berhasil keluar.');
+});
+
+// ================= APP LOGIC =================
+function renderEvents() {
+  const grid = document.getElementById('eventGrid');
+  const countEl = document.getElementById('eventCount');
+  
+  const dataToRender = events.length > 0 ? events : tickets;
+  
+  if(dataToRender.length > 0) {
+    countEl.style.display = 'inline-block';
+    countEl.textContent = dataToRender.length;
+  } else {
+      grid.innerHTML = `
+        <div class="text-center py-5 w-100 empty-state">
+          <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+          <p class="mt-3">Belum ada event tersedia</p>
+        </div>
+      `;
+      return;
+  }
+  
+  grid.innerHTML = dataToRender.map(e => `
+    <div class="col-lg-4 col-md-6">
+      <div class="event-card" onclick="switchPage('tiket')">
+        <div class="event-img-wrap">
+          <img src="${e.img}" alt="${e.name}">
+          <span class="event-badge">${e.cat}</span>
+          <span class="event-date-overlay"><i class="bi bi-calendar3"></i> ${e.date}</span>
+        </div>
+        <div class="event-body">
+          <h5 class="event-title">${e.name}</h5>
+          <div class="event-loc"><i class="bi bi-geo-alt"></i> ${e.loc}</div>
+          <div class="event-footer">
+            <div>
+              <span class="event-price-label">Mulai dari</span>
+              <span class="event-price">${formatRupiah(e.price)}</span>
+            </div>
+            <button class="btn-pilih">Pilih Tiket</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTickets() {
+  const list = document.getElementById('ticketList');
+  if (tickets.length === 0) {
+    list.innerHTML = `
+      <div class="text-center py-5 empty-state">
+        <div class="spinner-border text-success" role="status"></div>
+        <p class="mt-3">Memuat data tiket...</p>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = tickets.map(e => {
+    const qty = cart[e.id] || 0;
+    const isSelected = qty > 0;
+    const isOutOfStock = e.stock <= 0;
+    
+    const isNonaktif = e.status !== 'active' && e.status !== 'aktif';
+    const isDisabled = isOutOfStock || isNonaktif;
+    
+    return `
+      <div class="product-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'opacity-50' : ''}" id="card-${e.id}" style="${isDisabled ? 'pointer-events: none; background: var(--forest-dark);' : ''}">
+        <img src="${e.img}" class="product-thumb" alt="${e.name}">
+        <div class="product-info">
+          <div class="product-name">${e.name} ${isNonaktif ? '<span class="badge bg-secondary ms-2">Inactive</span>' : ''}</div>
+          <div class="product-meta">${e.cat} · ${e.loc} · ${e.date}</div>
+          <div class="product-price-row">
+            <span class="product-price">${formatRupiah(e.price)}</span>
+            <span class="product-stock">· Stok ${e.stock}</span>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('${e.id}', -1)" ${qty === 0 || isDisabled ? 'disabled' : ''}>
+              <i class="bi bi-dash"></i>
+            </button>
+            <span class="qty-value" id="qty-${e.id}">${qty}</span>
+            <button class="qty-btn" onclick="changeQty('${e.id}', 1)" ${qty >= e.stock || isDisabled ? 'disabled' : ''}>
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+          <button class="btn btn-sm btn-pilih ${isSelected ? 'selected' : ''}" onclick="toggleSelect('${e.id}')" ${isDisabled ? 'disabled' : ''}>
+            ${isNonaktif ? 'Inactive' : (isOutOfStock ? 'Habis' : (isSelected ? 'Dipilih' : 'Pilih'))}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function changeQty(id, delta) {
+  const e = tickets.find(x => x.id === id);
+  if (!e || (e.status !== 'active' && e.status !== 'aktif')) return;
+  
+  if (!cart[id]) cart[id] = 0;
+  cart[id] = Math.max(0, Math.min(e.stock, cart[id] + delta));
+  if (cart[id] === 0) delete cart[id];
+  renderTickets();
+  updateSummary();
+  updateCartCount();
+}
+
+function toggleSelect(id) {
+  const e = tickets.find(x => x.id === id);
+  if (!e || e.stock <= 0 || (e.status !== 'active' && e.status !== 'aktif')) return;
+  
+  if (cart[id] && cart[id] > 0) {
+    delete cart[id];
+  } else {
+    cart[id] = 1;
+  }
+  renderTickets();
+  updateSummary();
+  updateCartCount();
+}
+
+function updateCartCount() {
+  const count = Object.values(cart).reduce((a, b) => a + b, 0);
+  const cartCountEl = document.getElementById('cartCount');
+  const mobileEl = document.getElementById('cartCountMobile');
+  if (count > 0) {
+    cartCountEl.style.display = 'inline-block';
+    cartCountEl.textContent = count;
+    mobileEl.style.display = 'inline-block';
+    mobileEl.textContent = count;
+  } else {
+    cartCountEl.style.display = 'none';
+    mobileEl.style.display = 'none';
+  }
+}
+
+function updateSummary() {
+  const items = Object.keys(cart).filter(id => cart[id] > 0);
+  const summaryItems = document.getElementById('summaryItems');
+  const checkoutItems = document.getElementById('checkoutItems');
+  const footer = document.getElementById('summaryFooter');
+  const checkoutFooter = document.getElementById('checkoutFooter');
+
+  if (items.length === 0) {
+    summaryItems.innerHTML = '<p class="text-center py-4 empty-state">Belum ada tiket dipilih.<br>Pilih tiket di sebelah kiri untuk mulai memesan.</p>';
+    checkoutItems.innerHTML = '<p class="text-center py-4 empty-state">Keranjang masih kosong.</p>';
+    footer.style.display = 'none';
+    checkoutFooter.style.display = 'none';
+    return;
+  }
+
+  let subtotal = 0;
+  let html = '';
+  items.forEach(id => {
+    const e = tickets.find(x => x.id === id);
+    if(!e) return;
+    const qty = cart[id];
+    const lineTotal = e.price * qty;
+    subtotal += lineTotal;
+    html += `
+      <div class="summary-row">
+        <div>
+          <div class="summary-item-name">${e.name}</div>
+          <div class="summary-item-meta">${qty} × ${formatRupiah(e.price)}</div>
+        </div>
+        <div class="summary-item-price">${formatRupiah(lineTotal)}</div>
+      </div>
+    `;
+  });
+  summaryItems.innerHTML = html;
+  checkoutItems.innerHTML = html;
+  
+  const fee = 5000;
+  const total = subtotal + fee;
+  
+  document.getElementById('subtotalValue').textContent = formatRupiah(subtotal);
+  document.getElementById('totalValue').textContent = formatRupiah(total);
+  document.getElementById('checkoutSubtotal').textContent = formatRupiah(subtotal);
+  document.getElementById('checkoutTotal').textContent = formatRupiah(total);
+  
+  footer.style.display = 'block';
+  checkoutFooter.style.display = 'block';
+}
+
+function renderRiwayat() {
+  const container = document.getElementById('riwayatContainer');
+  if (riwayat.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-5 empty-state">
+        <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+        <p class="mt-3">Belum ada riwayat pemesanan</p>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = riwayat.map(r => {
+    const ticketIds = String(r.ID_TIKET || '').split(',').map(id => id.trim());
+    const eventNames = ticketIds.map(id => {
+      const ev = tickets.find(e => e.id === id);
+      return ev ? ev.name : id;
+    });
+    const firstEvent = tickets.find(e => e.id === ticketIds[0]);
+    const img = firstEvent ? firstEvent.img : 'https://picsum.photos/seed/default-ticket/120/120';
+    const statusClass = String(r.STATUS || '').toLowerCase().includes('sukses') || String(r.STATUS || '').toLowerCase().includes('berhasil') ? 'status-success' : 'status-pending';
+    
+    return `
+      <div class="riwayat-item">
+        <img src="${img}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;">
+        <div class="flex-grow-1">
+          <div style="font-weight:700;font-size:0.95rem;letter-spacing:-0.01em;">${eventNames.join(', ') || 'Tiket'}</div>
+          <div class="product-meta">
+            ID Pesanan: <strong>${r.ID_PESANAN || '-'}</strong><br>
+            ID Tiket: ${r.ID_TIKET || '-'}<br>
+            Jumlah: ${parseInt(r.JUMLAH) || 0} tiket
+          </div>
+        </div>
+        <div class="text-end">
+          <div style="font-weight:700;font-size:0.95rem;">${formatRupiah(r.TOTAL_HARGA)}</div>
+          <span class="status-badge ${statusClass}">${r.STATUS || 'Pending'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function switchPage(pageName) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-link-custom').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + pageName);
+  if (page) page.classList.add('active');
+  const nav = document.querySelector(`[data-page="${pageName}"]`);
+  if (nav) nav.classList.add('active');
+  
+  document.getElementById('sidebar').classList.remove('show');
+  document.getElementById('sidebarBackdrop').style.display = 'none';
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.nav-link-custom').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    switchPage(link.dataset.page);
+  });
+});
+
+document.getElementById('menuToggle').addEventListener('click', () => {
+  const sb = document.getElementById('sidebar');
+  const bd = document.getElementById('sidebarBackdrop');
+  sb.classList.toggle('show');
+  bd.style.display = sb.classList.contains('show') ? 'block' : 'none';
+});
+document.getElementById('sidebarBackdrop').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.remove('show');
+  document.getElementById('sidebarBackdrop').style.display = 'none';
+});
+
+document.getElementById('btnProses').addEventListener('click', () => {
+  const items = Object.keys(cart).filter(id => cart[id] > 0);
+  if (items.length === 0) {
+    showToast('Pilih minimal satu tiket dulu');
+    return;
+  }
+  switchPage('pemesanan');
+  updateSummary();
+});
+
+document.getElementById('btnBayar').addEventListener('click', async () => {
+  const form = document.getElementById('customerForm');
+  const inputs = form.querySelectorAll('input[required]');
+  let valid = true;
+  inputs.forEach(i => { if (!i.value.trim()) valid = false; });
+  if (!valid) {
+    showToast('Lengkapi data pemesan terlebih dahulu');
+    return;
+  }
+  
+  const btnBayar = document.getElementById('btnBayar');
+  btnBayar.disabled = true;
+  btnBayar.textContent = 'Memproses...';
+  
+  const nama = document.getElementById('custName').value;
+  const email = document.getElementById('custEmail').value;
+  const items = Object.keys(cart).filter(id => cart[id] > 0);
+  
+  // VALIDASI TIKET INACTIVE
+  for (const id of items) {
+    const e = tickets.find(x => x.id === id);
+    if (!e || (e.status !== 'active' && e.status !== 'aktif')) {
+      showToast('Ada tiket Inactive di keranjang. Mohon hapus tiket tersebut.');
+      btnBayar.disabled = false;
+      btnBayar.textContent = 'Bayar Sekarang';
+      return;
+    }
+  }
+  
+  let total = 5000; 
+  let totalQty = 0;
+  let detailIds = [];
+  
+  items.forEach(id => {
+    const e = tickets.find(x => x.id === id);
+    if (e) {
+      total += e.price * cart[id];
+      totalQty += cart[id];
+      detailIds.push(e.id);
+    }
+  });
+  
+  const pesananData = {
+    ID_TIKET: detailIds.join(', '),
+    NAMA_PEMESAN: nama,
+    EMAIL_PEMESAN: email, 
+    TANGGAL_PESANAN: new Date().toLocaleString('id-ID'), 
+    JUMLAH: totalQty,
+    TOTAL_HARGA: total,
+    STATUS: 'Sukses'
+  };
+  
+  const success = await createPesanan(pesananData);
+  
+  if (success) {
+    for (const id of items) {
+      const e = tickets.find(x => x.id === id);
+      if (e) {
+        const newStock = e.stock - cart[id];
+        await updateTiketStock(id, newStock); 
+        e.stock = newStock; 
+      }
+    }
+    
+    showToast('Pembayaran berhasil! Stok tiket diperbarui ✓');
+    setTimeout(() => {
+      cart = {};
+      updateCartCount();
+      renderTickets(); 
+      updateSummary();
+      fetchRiwayat(nama);
+      switchPage('riwayat');
+      
+      btnBayar.disabled = false;
+      btnBayar.textContent = 'Bayar Sekarang';
+    }, 1800);
+  } else {
+    showToast('Gagal menyimpan pesanan. Coba lagi.');
+    btnBayar.disabled = false;
+    btnBayar.textContent = 'Bayar Sekarang';
+  }
+});
+
+function showToast(msg) {
+  const toast = document.getElementById('liveToast');
+  document.getElementById('toastBody').textContent = msg;
+  const bs = new bootstrap.Toast(toast, { delay: 2800 });
+  bs.show();
+}
+
+// INIT APP & AUTO REFRESH
+(async function() {
+  await fetchEvents(); // 1. Muat Event DULU
+  await fetchTickets(); // 2. Lalu muat Tiket (agar bisa ambil gambar dari Event)
+  renderRiwayat();
+  updateSummary();
+  updateCartCount();
+
+  // AUTO REFRESH SETIAP 15 DETIK (15000 MS)
+  setInterval(async () => {
+    await fetchEvents();
+    await fetchTickets();
+    if (currentUser) {
+      fetchRiwayat(currentUser.name);
+    }
+    updateSummary();
+    updateCartCount();
+  }, 15000);
+})();
+</script>
+</body>
+</html>
